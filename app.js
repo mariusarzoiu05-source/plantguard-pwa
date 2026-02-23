@@ -1,6 +1,24 @@
 let mode = "sim"; // sim / device
 let deviceBaseUrl = localStorage.getItem("deviceBaseUrl") || "";
 
+let plantName = localStorage.getItem("plantName") || "Planta mea";
+
+function applyPlantName() {
+  const el = document.getElementById("plantName");
+  if (el) el.textContent = plantName;
+}
+
+function editPlantName() {
+  const input = prompt("Cum se numește planta?", plantName);
+  if (!input) return;
+
+  plantName = input.trim();
+  if (!plantName) return;
+
+  localStorage.setItem("plantName", plantName);
+  applyPlantName();
+}
+
 function toggleMode() {
   mode = (mode === "sim") ? "device" : "sim";
   document.getElementById("modeBtn").textContent =
@@ -21,6 +39,7 @@ function toggleMode() {
     deviceBaseUrl = input.trim().replace(/\/+$/, "");
     localStorage.setItem("deviceBaseUrl", deviceBaseUrl);
   }
+  // când se încarcă pagina, afișează numele salvat
 }
 
 function refreshData() {
@@ -55,3 +74,4 @@ function randFloat(min, max, decimals = 1) {
   const p = Math.pow(10, decimals);
   return Math.round(v * p) / p;
 }
+window.addEventListener("load", applyPlantName);
