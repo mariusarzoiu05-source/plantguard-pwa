@@ -1,9 +1,15 @@
 <!doctype html>
 <html lang="ro">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PlantGuard</title>
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="icon.png">
+
 
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#2e7d32" />
@@ -24,7 +30,7 @@
       background: white;
       padding: 28px;
       border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.10);
       text-align: center;
       width: min(520px, 92vw);
     }
@@ -43,11 +49,13 @@
     }
 
     @media (min-width: 520px) {
-      .grid { grid-template-columns: 1fr 1fr; }
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
     }
 
     .tile {
-      border: 1px solid rgba(0,0,0,0.07);
+      border: 1px solid rgba(0, 0, 0, 0.07);
       border-radius: 16px;
       padding: 16px 14px;
       background: #fafcfa;
@@ -108,51 +116,81 @@
       font-size: 13px;
       opacity: 0.7;
     }
+
+    .mini {
+      background: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e3a1f;
+      padding: 4px 8px;
+      min-width: auto;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .full {
+      width: 100%;
+      min-width: 0;
+    }
+
+    button {
+      min-height: 48px;
+      /* tap friendly */
+    }
   </style>
 </head>
+
 <body>
 
-<div class="card">
-  <h1>🌱 PlantGuard</h1>
+  <div class="card">
+    <h1>🌱 PlantGuard</h1>
 
-  <div class="grid">
-    <!-- Plant -->
-    <div class="tile">
-      <div class="tile-title">🪴 Planta</div>
-      <div class="value" id="soilValue">--%</div>
-      <div class="status" id="soilStatus">Apasă Refresh</div>
-      <div class="meta" id="soilMeta">Umiditate sol</div>
+    <div class="grid">
+      <!-- Plant -->
+      <div class="tile">
+        <div class="tile-title">
+          🪴 <span id="plantName">Planta mea</span>
+        </div>
+
+        <div class="value" id="soilValue">--%</div>
+        <div class="status" id="soilStatus">Apasă Refresh</div>
+        <div class="meta" id="soilMeta">Umiditate sol</div>
+
+        <button class="secondary full" onclick="editPlantName()" style="margin-top:12px;">
+          Schimbă numele plantei
+        </button>
+      </div>
+
+      <!-- Ambient -->
+      <div class="tile">
+        <div class="tile-title">🏠 Ambient</div>
+        <div class="value" id="tempValue">--°C</div>
+        <div class="status" id="tempStatus">Apasă Refresh</div>
+        <div class="meta" id="humMeta">Umiditate aer: --%</div>
+      </div>
     </div>
 
-    <!-- Ambient -->
-    <div class="tile">
-      <div class="tile-title">🏠 Ambient</div>
-      <div class="value" id="tempValue">--°C</div>
-      <div class="status" id="tempStatus">Apasă Refresh</div>
-      <div class="meta" id="humMeta">Umiditate aer: --%</div>
+    <div class="row">
+      <button onclick="refreshData()">Refresh</button>
+      <button class="secondary" onclick="toggleMode()" id="modeBtn">Mod: Simulare</button>
+    </div>
+
+    <div class="hint">
+      În modul Simulare, valorile sunt random. Când vine ESP32, trecem pe “Device”.
     </div>
   </div>
 
-  <div class="row">
-    <button onclick="refreshData()">Refresh</button>
-    <button class="secondary" onclick="toggleMode()" id="modeBtn">Mod: Simulare</button>
-  </div>
+  <script src="app.js"></script>
 
-  <div class="hint">
-    În modul Simulare, valorile sunt random. Când vine ESP32, trecem pe “Device”.
-  </div>
-</div>
-
-<script src="app.js"></script>
-
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js")
-        .then(() => console.log("SW registered"))
-        .catch((err) => console.error("SW failed", err));
-    });
-  }
-</script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+          .then(() => console.log("SW registered"))
+          .catch((err) => console.error("SW failed", err));
+      });
+    }
+  </script>
 </body>
+
 </html>
