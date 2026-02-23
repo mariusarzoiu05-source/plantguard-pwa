@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PlantGuard</title>
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#2e7d32" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, Arial, sans-serif;
+      background: #f4f7f4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 300px;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      color: #2e7d32;
+    }
+
+    .value {
+      font-size: 48px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .status {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #2e7d32;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>🌱 PlantGuard</h1>
+  <div class="value" id="moisture">--%</div>
+  <div class="status" id="status">Apasă Refresh</div>
+  <button onclick="refreshData()">Refresh</button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
