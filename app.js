@@ -52,15 +52,15 @@ function refreshData() {
   document.getElementById("soilValue").textContent = soil + "%";
   document.getElementById("soilStatus").textContent =
     soil < 30 ? "Uscat 💧" :
-    soil < 60 ? "Mediu 🌱" :
-    "OK 🌿";
+      soil < 60 ? "Mediu 🌱" :
+        "OK 🌿";
 
   // AMBIENT
   document.getElementById("tempValue").textContent = temp.toFixed(1) + "°C";
   document.getElementById("tempStatus").textContent =
     temp < 18 ? "Rece 🧊" :
-    temp < 26 ? "Confort ✅" :
-    "Cald 🔥";
+      temp < 26 ? "Confort ✅" :
+        "Cald 🔥";
 
   document.getElementById("humMeta").textContent = "Umiditate aer: " + hum + "%";
 }
@@ -75,3 +75,79 @@ function randFloat(min, max, decimals = 1) {
   return Math.round(v * p) / p;
 }
 window.addEventListener("load", applyPlantName);
+
+let deferredPrompt = null;
+
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
+function isStandalone() {
+  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+    (navigator.standalone === true);
+}
+
+function setupInstallButton() {
+  const btn = document.getElementById("installBtn");
+  const hint = document.getElementById("installHint");
+  if (!btn) return;
+
+  // Dacă deja e instalată ca app, ascundem tot
+  if (isStandalone()) {
+    btn.style.display = "none";
+    if (hint) hint.style.display = "none";
+    return;
+  }
+
+  // iOS: nu există prompt -> doar arătăm instrucțiuni
+  if (isIOS()) {
+    btn.style.display = "block";
+    btn.textContent = "Adaugă pe ecran";
+    if (hint) hint.style.display = "block";
+    btn.onclick = () => {
+      alert("Pe iPhone: deschide în Safari → Share (⤴︎) → Add to Home Screen.");
+    };
+    return;
+  }
+
+  // Android: butonul apare doar când avem deferredPrompt
+  btn.onclick = async () => {
+    if (!deferredPrompt) {
+      alert("Instalarea nu e disponibilă încă. Deschide site-ul în Chrome și mai încearcă.");
+      return;
+    }
+
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+
+    // după ce user decide, ascundem butonul ca să nu fie spam
+    btn.style.display = "none";
+    if (hint) hint.style.display = "none";
+
+    console.log("Install choice:", choice);
+  };
+}
+
+// Android/Chrome: capturează promptul
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const btn = document.getElementById("installBtn");
+  if (btn && !isStandalone()) {
+    btn.style.display = "block";
+  }
+});
+
+// după instalare
+window.addEventListener("appinstalled", () => {
+  deferredPrompt = null;
+  const btn = document.getElementById("installBtn");
+  const hint = document.getElementById("installHint");
+  if (btn) btn.style.display = "none";
+  if (hint) hint.style.display = "none";
+});
+
+// inițializare UI
+window.addEventListener("load", setupInstallButton);
