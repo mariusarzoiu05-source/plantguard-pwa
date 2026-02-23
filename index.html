@@ -16,42 +16,97 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
+      padding: 16px;
     }
 
     .card {
       background: white;
-      padding: 30px;
+      padding: 28px;
       border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.10);
       text-align: center;
-      width: 300px;
+      width: min(520px, 92vw);
     }
 
     h1 {
-      margin: 0 0 20px;
+      margin: 0 0 18px;
       color: #2e7d32;
+      font-size: 28px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin: 18px 0 20px;
+    }
+
+    @media (min-width: 520px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .tile {
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 16px;
+      padding: 16px 14px;
+      background: #fafcfa;
+    }
+
+    .tile-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #1e3a1f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .value {
-      font-size: 48px;
-      font-weight: bold;
-      margin: 10px 0;
+      font-size: 44px;
+      font-weight: 800;
+      margin: 8px 0 6px;
+      letter-spacing: -0.5px;
+    }
+
+    .meta {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-top: 2px;
     }
 
     .status {
-      font-size: 18px;
-      margin-bottom: 20px;
+      font-size: 16px;
+      margin-top: 6px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
     button {
-      padding: 10px 20px;
+      padding: 10px 16px;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       background: #2e7d32;
       color: white;
       font-size: 16px;
       cursor: pointer;
+      min-width: 140px;
+    }
+
+    button.secondary {
+      background: #1f2937;
+    }
+
+    .hint {
+      margin-top: 14px;
+      font-size: 13px;
+      opacity: 0.7;
     }
   </style>
 </head>
@@ -59,11 +114,45 @@
 
 <div class="card">
   <h1>🌱 PlantGuard</h1>
-  <div class="value" id="moisture">--%</div>
-  <div class="status" id="status">Apasă Refresh</div>
-  <button onclick="refreshData()">Refresh</button>
+
+  <div class="grid">
+    <!-- Plant -->
+    <div class="tile">
+      <div class="tile-title">🪴 Planta</div>
+      <div class="value" id="soilValue">--%</div>
+      <div class="status" id="soilStatus">Apasă Refresh</div>
+      <div class="meta" id="soilMeta">Umiditate sol</div>
+    </div>
+
+    <!-- Ambient -->
+    <div class="tile">
+      <div class="tile-title">🏠 Ambient</div>
+      <div class="value" id="tempValue">--°C</div>
+      <div class="status" id="tempStatus">Apasă Refresh</div>
+      <div class="meta" id="humMeta">Umiditate aer: --%</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <button onclick="refreshData()">Refresh</button>
+    <button class="secondary" onclick="toggleMode()" id="modeBtn">Mod: Simulare</button>
+  </div>
+
+  <div class="hint">
+    În modul Simulare, valorile sunt random. Când vine ESP32, trecem pe “Device”.
+  </div>
 </div>
 
 <script src="app.js"></script>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js")
+        .then(() => console.log("SW registered"))
+        .catch((err) => console.error("SW failed", err));
+    });
+  }
+</script>
 </body>
 </html>
