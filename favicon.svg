@@ -1,8 +1,66 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect x="4" y="4" width="56" height="56" rx="14" fill="#2e7d32"/>
-  <path d="M32 44c0-10 1-18 10-22-1 9-5 14-10 16" fill="#b7f5c1"/>
-  <path d="M32 44c0-10-1-18-10-22 1 9 5 14 10 16" fill="#88e59a"/>
-  <rect x="27" y="30" width="10" height="18" rx="5" fill="#1b5e20"/>
-  <ellipse cx="32" cy="46" rx="15" ry="7" fill="#6d4c41"/>
-  <ellipse cx="32" cy="47" rx="13" ry="5" fill="#8d6e63" opacity="0.9"/>
+  <defs>
+    <linearGradient id="bg" x1="10" y1="6" x2="58" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1b5e20"/>
+      <stop offset="0.55" stop-color="#2e7d32"/>
+      <stop offset="1" stop-color="#0f3d22"/>
+    </linearGradient>
+
+    <radialGradient id="shine" cx="18" cy="14" r="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.45"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="leafL" x1="18" y1="28" x2="34" y2="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b7f5c1"/>
+      <stop offset="1" stop-color="#34d399"/>
+    </linearGradient>
+
+    <linearGradient id="leafR" x1="46" y1="26" x2="32" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#86efac"/>
+      <stop offset="1" stop-color="#22c55e"/>
+    </linearGradient>
+
+    <linearGradient id="pot" x1="22" y1="34" x2="42" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#14532d"/>
+      <stop offset="1" stop-color="#0b3b1f"/>
+    </linearGradient>
+
+    <linearGradient id="soil" x1="18" y1="44" x2="46" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7a4b3a"/>
+      <stop offset="1" stop-color="#a9795f"/>
+    </linearGradient>
+
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded background -->
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#bg)"/>
+
+  <!-- Soft highlight -->
+  <ellipse cx="20" cy="14" rx="22" ry="18" fill="url(#shine)"/>
+
+  <!-- Plant group with subtle shadow -->
+  <g filter="url(#shadow)">
+    <!-- Leaves -->
+    <path d="M32 46c0-11 1-19 12-24-1 10-6 16-12 18" fill="url(#leafR)"/>
+    <path d="M32 46c0-11-1-19-12-24 1 10 6 16 12 18" fill="url(#leafL)"/>
+
+    <!-- Stem -->
+    <path d="M31 28c3 6 3 12 2 18" fill="none" stroke="#0b3b1f" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+
+    <!-- Pot -->
+    <path d="M24 34h16c1.3 0 2.3 1.1 2.2 2.4l-1.2 12.2c-.2 1.9-1.8 3.4-3.7 3.4H26.5c-1.9 0-3.5-1.5-3.7-3.4l-1.2-12.2c-.1-1.3.9-2.4 2.4-2.4Z" fill="url(#pot)"/>
+    <path d="M22 34c0-2.2 1.8-4 4-4h12c2.2 0 4 1.8 4 4" fill="none" stroke="#1f7a3a" stroke-opacity="0.55" stroke-width="2"/>
+
+    <!-- Soil -->
+    <ellipse cx="32" cy="46" rx="15" ry="7" fill="url(#soil)"/>
+    <ellipse cx="32" cy="47" rx="13" ry="5" fill="#c79a80" opacity="0.22"/>
+  </g>
+
+  <!-- Outer subtle stroke (premium crisp) -->
+  <rect x="4.5" y="4.5" width="55" height="55" rx="13.5" fill="none" stroke="#ffffff" stroke-opacity="0.10"/>
 </svg>

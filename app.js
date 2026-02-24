@@ -42,25 +42,60 @@ function toggleMode() {
   // când se încarcă pagina, afișează numele salvat
 }
 
-function refreshData() {
-  // Pentru început: SIMULARE mereu (merge și fără placă)
+async function refreshData() {
+  const isDevice = (mode === "device" && deviceBaseUrl);
+
+  if (isDevice) {
+    const url = deviceBaseUrl.replace(/\/+$/, "") + "/data";
+    console.log("Fetching:", url);
+
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+
+      const text = await res.text();
+      console.log("Raw response:", text);
+
+      const data = JSON.parse(text);
+      const soil = Number(data.soil);
+      const temp = Number(data.temp);
+      const hum  = Number(data.hum);
+
+      if (!Number.isFinite(soil) || !Number.isFinite(temp) || !Number.isFinite(hum)) {
+        throw new Error("Bad numbers: " + JSON.stringify(data));
+      }
+
+      renderData(soil, temp, hum);
+      return;
+    } catch (e) {
+      console.warn("DEVICE FAILED:", e);
+      // arată pe UI că e fallback, ca să știi sigur
+      document.getElementById("humMeta").textContent =
+        "Device error: " + (e?.message || e);
+    }
+  }
+
+  // SIMULARE
   const soil = randInt(0, 100);
   const temp = randFloat(16, 30, 1);
   const hum = randInt(25, 80);
+  renderData(soil, temp, hum);
+}
 
+function renderData(soil, temp, hum) {
   // PLANT
   document.getElementById("soilValue").textContent = soil + "%";
   document.getElementById("soilStatus").textContent =
     soil < 30 ? "Uscat 💧" :
-      soil < 60 ? "Mediu 🌱" :
-        "OK 🌿";
+    soil < 60 ? "Mediu 🌱" :
+    "OK 🌿";
 
   // AMBIENT
   document.getElementById("tempValue").textContent = temp.toFixed(1) + "°C";
   document.getElementById("tempStatus").textContent =
     temp < 18 ? "Rece 🧊" :
-      temp < 26 ? "Confort ✅" :
-        "Cald 🔥";
+    temp < 26 ? "Confort ✅" :
+    "Cald 🔥";
 
   document.getElementById("humMeta").textContent = "Umiditate aer: " + hum + "%";
 }
