@@ -1,6 +1,6 @@
 let mode = "sim"; // sim / device
 let deviceBaseUrl = localStorage.getItem("deviceBaseUrl") || "";
-
+const SETUP_BASE = "http://192.168.4.1"; // portal ESP32 AP
 let plantName = localStorage.getItem("plantName") || "Planta mea";
 
 function applyPlantName() {
@@ -184,5 +184,180 @@ window.addEventListener("appinstalled", () => {
   if (hint) hint.style.display = "none";
 });
 
-// inițializare UI
-window.addEventListener("load", setupInstallButton);
+function showSetupStatus(msg) {
+  const el = document.getElementById("wifiSetupStatus");
+  if (!el) return;
+  el.style.display = "block";
+  el.textContent = msg;
+}
+
+async function openWifiSetup() {
+  showSetupStatus("Caut dispozitivul (http://192.168.4.1) ...");
+
+  // 1) încearcă scan
+  let networks = [];
+  try {
+    const res = await fetch(SETUP_BASE + "/scan", { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    networks = await res.json();
+  } catch (e) {
+    // aici intră des dacă PWA e pe HTTPS și browser blochează mixed content
+    showSetupStatus(
+      "Nu pot accesa portalul ESP32 din aplicație (posibil blocaj HTTPS→HTTP).\n" +
+      "Conectează-te la Wi-Fi-ul ESP32 (PlantGuard-Setup) și deschide direct: http://192.168.4.1"
+    );
+    return;
+  }
+
+  if (!Array.isArray(networks) || networks.length === 0) {
+    showSetupStatus("Nu am găsit rețele. Încearcă din nou.");
+    return;
+  }
+
+  // 2) user alege SSID
+  const ssidList = networks.map(n => n.ssid).filter(Boolean);
+  const ssid = prompt(
+    "Alege SSID (copie exact din listă):\n\n" + ssidList.slice(0, 20).join("\n"),
+    ssidList[0] || ""
+  );
+  if (!ssid) { showSetupStatus("Anulat."); return; }
+
+  const pass = prompt("Parola Wi-Fi pentru: " + ssid + "\n(Lasă gol dacă e rețea deschisă)", "");
+  if (pass === null) { showSetupStatus("Anulat."); return; }
+
+  // 3) trimite save
+  showSetupStatus("Trimit datele către ESP32...");
+
+  try {
+    const res2 = await fetch(SETUP_BASE + "/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ssid, pass })
+    });
+    const j = await res2.json().catch(() => ({}));
+    if (!res2.ok || !j.ok) throw new Error(j.err || ("HTTP " + res2.status));
+
+    showSetupStatus(
+      "Salvat ✅. Dispozitivul se restartează și încearcă să se conecteze.\n" +
+      "1) Revino pe Wi-Fi-ul tău normal.\n" +
+      "2) Apoi treci pe Mod: Device și introdu IP-ul (îl vezi în Serial Monitor)."
+    );
+  } catch (e) {
+    showSetupStatus("Eroare la /save: " + (e?.message || e));
+  }
+}
+
+let guideStep = Number(localStorage.getItem("guideStep") || "1");
+
+const guideSteps = [
+  {
+    title: "Pasul 1: Conectează-te la placa ESP32",
+    text:
+`• Deschide Wi-Fi pe telefon/laptop
+• Conectează-te la: PlantGuard-Setup
+• Parola (dacă ai păstrat-o): 12345678`
+  },
+  {
+    title: "Pasul 2: Deschide portalul de configurare",
+    text:
+`• Deschide în browser:
+  http://192.168.4.1
+• Introdu rețeaua ta (SSID) + parola și apasă Save
+• Așteaptă 20–30 secunde (placa se restartează)`
+  },
+  {
+    title: "Pasul 3: Revino pe Wi-Fi normal",
+    text:
+`• Reconectează telefonul/laptopul la Wi-Fi-ul tău normal
+• Deschide iar PlantGuard (PWA) de pe Vercel
+• Treci pe Mod: Device`
+  },
+  {
+    title: "Pasul 4: Introdu IP-ul plăcii",
+    text:
+`• IP-ul îl vezi în Serial Monitor după conectare
+  (ex: 192.168.1.45)
+• În PlantGuard: Mod → Device → introdu IP-ul
+• Apoi apasă Refresh`
+  }
+];
+
+function setGuideMsg(msg) {
+  const el = document.getElementById("guideMsg");
+  if (!el) return;
+  el.style.display = msg ? "block" : "none";
+  el.textContent = msg || "";
+}
+
+function renderGuide() {
+  const box = document.getElementById("guideBox");
+  if (!box || box.style.display === "none") return;
+
+  const step = Math.max(1, Math.min(guideSteps.length, guideStep));
+  const data = guideSteps[step - 1];
+
+  const progress = document.getElementById("guideProgress");
+  const title = document.getElementById("guideTitle");
+  const text = document.getElementById("guideText");
+
+  if (progress) progress.textContent = `${step}/${guideSteps.length}`;
+  if (title) title.textContent = data.title;
+  if (text) text.textContent = data.text;
+
+  localStorage.setItem("guideStep", String(step));
+}
+
+function toggleGuide() {
+  const box = document.getElementById("guideBox");
+  if (!box) return;
+  const isOpen = box.style.display !== "none";
+  box.style.display = isOpen ? "none" : "block";
+  setGuideMsg("");
+  renderGuide();
+}
+
+function nextStep() {
+  guideStep = Math.min(guideSteps.length, guideStep + 1);
+  setGuideMsg("");
+  renderGuide();
+}
+
+function prevStep() {
+  guideStep = Math.max(1, guideStep - 1);
+  setGuideMsg("");
+  renderGuide();
+}
+
+async function copyPortalLink() {
+  const link = "http://192.168.4.1";
+  try {
+    await navigator.clipboard.writeText(link);
+    setGuideMsg("Copiat ✅\nAcum lipește în browser (când ești conectat la PlantGuard-Setup).");
+  } catch {
+    setGuideMsg("Nu pot copia automat.\nLink: http://192.168.4.1");
+  }
+}
+
+function openPortal() {
+  // Pe HTTPS e posibil să fie blocat / să nu meargă dacă nu ești pe Wi-Fi-ul ESP
+  setGuideMsg("Dacă nu se deschide, e normal.\nConectează-te la PlantGuard-Setup și deschide manual: http://192.168.4.1");
+  try { window.open("http://192.168.4.1", "_blank"); } catch {}
+}
+
+function quickDeviceSetup() {
+  const input = prompt("IP-ul plăcii (ex: http://192.168.1.45)", deviceBaseUrl || "http://192.168.1.45");
+  if (!input) return;
+  deviceBaseUrl = input.trim().replace(/\/+$/, "");
+  localStorage.setItem("deviceBaseUrl", deviceBaseUrl);
+
+  mode = "device";
+  const btn = document.getElementById("modeBtn");
+  if (btn) btn.textContent = "Mod: Device";
+
+  setGuideMsg("Salvat ✅\nAcum apasă Refresh ca să citești /data.");
+}
+
+window.addEventListener("load", () => {
+  setupInstallButton();
+  applyPlantName();
+});

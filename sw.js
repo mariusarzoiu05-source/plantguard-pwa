@@ -25,6 +25,22 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+
+  const isLocalDevice =
+    url.hostname === "192.168.4.1" ||
+    url.hostname.startsWith("192.168.") ||
+    url.pathname === "/data" ||
+    url.pathname === "/scan" ||
+    url.pathname === "/save";
+
+  // Pentru ESP/local: network only (fără cache) ca să nu strice provisioning
+  if (isLocalDevice) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Restul: cache-first (cum ai tu)
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
