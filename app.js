@@ -357,6 +357,43 @@ function quickDeviceSetup() {
   setGuideMsg("Salvat ✅\nAcum apasă Refresh ca să citești /data.");
 }
 
+// ===== AUTO-REFRESH (la 10 secunde) =====
+let autoRefreshTimer = null;
+let isRefreshing = false;
+
+async function safeRefresh() {
+  if (isRefreshing) return;          // evită suprapuneri dacă durează fetch-ul
+  if (document.hidden) return;       // nu refresh când app e în background
+  isRefreshing = true;
+  try {
+    await refreshData();
+  } finally {
+    isRefreshing = false;
+  }
+}
+
+function startAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  safeRefresh(); // ia date imediat când pornește
+  autoRefreshTimer = setInterval(safeRefresh, 10000);
+}
+
+function stopAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshTimer = null;
+}
+
+// pornește după ce se încarcă pagina
+window.addEventListener("load", () => {
+  startAutoRefresh();
+});
+
+// oprește/porneste când schimbi tab-ul (economisește baterie + evită bug-uri)
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopAutoRefresh();
+  else startAutoRefresh();
+});
+
 window.addEventListener("load", () => {
   setupInstallButton();
   applyPlantName();
