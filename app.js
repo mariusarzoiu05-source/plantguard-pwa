@@ -1,7 +1,13 @@
-let mode = "sim"; // sim / device
 let deviceBaseUrl = localStorage.getItem("deviceBaseUrl") || "";
+let mode = localStorage.getItem("mode") || (deviceBaseUrl ? "device" : "sim"); // sim/device
 const SETUP_BASE = "http://192.168.4.1"; // portal ESP32 AP
 let plantName = localStorage.getItem("plantName") || "Planta mea";
+
+
+function updateModeBtn() {
+  const btn = document.getElementById("modeBtn");
+  if (btn) btn.textContent = "Mod: " + (mode === "sim" ? "Simulare" : "Device");
+}
 
 function applyPlantName() {
   const el = document.getElementById("plantName");
@@ -21,25 +27,26 @@ function editPlantName() {
 
 function toggleMode() {
   mode = (mode === "sim") ? "device" : "sim";
-  document.getElementById("modeBtn").textContent =
-    "Mod: " + (mode === "sim" ? "Simulare" : "Device");
 
+  // dacă trecem pe device și nu avem încă URL, abia atunci cerem
   if (mode === "device") {
-    const input = prompt(
-      "Introdu adresa dispozitivului (ex: http://192.168.1.45)\n\nLeave blank ca să rămâi pe Simulare.",
-      deviceBaseUrl || "http://192.168.1.45"
-    );
+    if (!deviceBaseUrl) {
+      const input = prompt(
+        "Introdu adresa dispozitivului (ex: http://192.168.1.45)\n\nLeave blank ca să rămâi pe Simulare.",
+        "http://192.168.1.45"
+      );
 
-    if (!input) {
-      mode = "sim";
-      document.getElementById("modeBtn").textContent = "Mod: Simulare";
-      return;
+      if (!input) {
+        mode = "sim";
+      } else {
+        deviceBaseUrl = input.trim().replace(/\/+$/, "");
+        localStorage.setItem("deviceBaseUrl", deviceBaseUrl);
+      }
     }
-
-    deviceBaseUrl = input.trim().replace(/\/+$/, "");
-    localStorage.setItem("deviceBaseUrl", deviceBaseUrl);
   }
-  // când se încarcă pagina, afișează numele salvat
+
+  localStorage.setItem("mode", mode);
+  updateModeBtn();
 }
 
 async function refreshData() {
@@ -393,8 +400,19 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) stopAutoRefresh();
   else startAutoRefresh();
 });
+function changeDeviceUrl() {
+  const input = prompt("Adresa/IP-ul plăcii (ex: http://192.168.1.45)", deviceBaseUrl || "http://192.168.1.45");
+  if (!input) return;
+  deviceBaseUrl = input.trim().replace(/\/+$/, "");
+  localStorage.setItem("deviceBaseUrl", deviceBaseUrl);
+
+  mode = "device";
+  localStorage.setItem("mode", mode);
+  updateModeBtn();
+}
 
 window.addEventListener("load", () => {
   setupInstallButton();
   applyPlantName();
+  updateModeBtn();
 });
